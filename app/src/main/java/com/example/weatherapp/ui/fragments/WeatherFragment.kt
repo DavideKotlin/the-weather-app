@@ -7,12 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapp.R
 import com.example.weatherapp.adapters.WeatherAdapter
+import com.example.weatherapp.data.models.Hourly
 import com.example.weatherapp.data.remote.WeatherManager
-import com.example.weatherapp.databinding.FragmentCityBinding
 import com.example.weatherapp.databinding.FragmentWeatherBinding
 import com.example.weatherapp.repository.WeatherRepository
 import com.example.weatherapp.viewModels.WeatherViewModel
@@ -25,14 +27,15 @@ class WeatherFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var weatherAdapter: WeatherAdapter
 
-    val weatherViewModel: WeatherViewModel by activityViewModels()
-
+    private val weatherViewModel: WeatherViewModel by activityViewModels {
+        WeatherViewModelFactory(WeatherRepository(WeatherManager()))
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentWeatherBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -46,9 +49,15 @@ class WeatherFragment : Fragment() {
     }
 
     private fun setupRecyclerView() = binding.rvWeatherDays.apply {
-        weatherAdapter = WeatherAdapter()
+        weatherAdapter = WeatherAdapter(this@WeatherFragment::onWeatherClicked)
         adapter = weatherAdapter
         layoutManager = LinearLayoutManager(requireContext())
+        addItemDecoration(DividerItemDecoration(requireContext(), RecyclerView.VERTICAL))
+    }
+
+    private fun onWeatherClicked(weather: Hourly) {
+        weatherViewModel.selectedWeather = weather
+        findNavController().navigate(R.id.action_weatherFragment_to_detailsFragment)
     }
 }
 

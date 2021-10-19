@@ -3,14 +3,15 @@ package com.example.weatherapp.repository
 import android.util.Log
 import com.example.weatherapp.data.remote.WeatherManager
 import com.example.weatherapp.utils.Resource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class WeatherRepository(private val weatherManager: WeatherManager) {
 
-    fun getWeather(cityName: String, APIKEY: String) = flow {
-
+    fun getWeather(cityName: String) = flow {
         val resource = try {
-            val response = weatherManager.getWeather(cityName, APIKEY)
+            val response = weatherManager.getWeather(cityName)
             if (response.isSuccessful && response.body() != null) {
                 Resource.Success(response.body()!!)
             } else {
@@ -21,7 +22,7 @@ class WeatherRepository(private val weatherManager: WeatherManager) {
             Resource.Error(ex.toString())
         }
         emit(resource)
-    }
+    }.flowOn(Dispatchers.IO)
 
 
     companion object {

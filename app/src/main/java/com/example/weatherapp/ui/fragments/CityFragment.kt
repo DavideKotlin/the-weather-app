@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.weatherapp.R
 import com.example.weatherapp.data.remote.WeatherManager
@@ -18,18 +17,20 @@ import com.example.weatherapp.viewModels.WeatherViewModelFactory
 
 
 class CityFragment : Fragment() {
+
     private var _binding: FragmentCityBinding? = null
     private val binding get() = _binding!!
 
-    val weatherViewModel: WeatherViewModel by activityViewModels()
+    private val weatherViewModel: WeatherViewModel by activityViewModels {
+        WeatherViewModelFactory(WeatherRepository(WeatherManager()))
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentCityBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
@@ -38,9 +39,8 @@ class CityFragment : Fragment() {
 
         binding.nextButton.setOnClickListener {
             val cityName = binding.etCity.text.toString()
-            weatherViewModel.getWeather(cityName, API_KEY)
+            weatherViewModel.getWeatherForCity(cityName)
             findNavController().navigate(R.id.weatherFragment)
-
         }
     }
 

@@ -5,34 +5,30 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weatherapp.data.models.Days
+import com.example.weatherapp.R
+import com.example.weatherapp.data.models.Hourly
 import com.example.weatherapp.databinding.ItemWeatherBinding
 
-class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder>() {
-
-    inner class WeatherViewHolder(val binding: ItemWeatherBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-
-    private val differCallback = object : DiffUtil.ItemCallback<Days>() {
-        override fun areItemsTheSame(oldItem: Days, newItem: Days): Boolean {
+class WeatherAdapter(
+    private val listener: (weather: Hourly) -> Unit
+) : RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder>() {
+    private val differCallback = object : DiffUtil.ItemCallback<Hourly>() {
+        override fun areItemsTheSame(oldItem: Hourly, newItem: Hourly): Boolean {
             return oldItem.wind == newItem.wind
         }
 
-        override fun areContentsTheSame(oldItem: Days, newItem: Days): Boolean {
+        override fun areContentsTheSame(oldItem: Hourly, newItem: Hourly): Boolean {
             return oldItem == newItem
         }
     }
 
     val differ = AsyncListDiffer(this, differCallback)
 
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherViewHolder {
         return WeatherViewHolder(
             ItemWeatherBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent, false
-            )
+                LayoutInflater.from(parent.context), parent, false
+            ), listener
         )
     }
 
@@ -41,12 +37,22 @@ class WeatherAdapter : RecyclerView.Adapter<WeatherAdapter.WeatherViewHolder>() 
     }
 
     override fun onBindViewHolder(holder: WeatherViewHolder, position: Int) {
-        holder.binding.apply {
-            val day = differ.currentList[position]
-            tvDays.text = day.weather[position].main.toString()
-            tvDayTemp.text = day.main.temp.toString()
-        }
+        holder.bind(differ.currentList[position])
     }
 
 
+    class WeatherViewHolder(
+        private val binding: ItemWeatherBinding,
+        private val listener: (weather: Hourly) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(weatherItem: Hourly) {
+            with(binding) {
+                root.setOnClickListener {
+                    listener.invoke(weatherItem)
+                }
+                tvDays.text = weatherItem.weather[0].main
+                tvDayTemp.text = weatherItem.main?.temp?.toInt().toString()
+            }
+        }
+    }
 }
